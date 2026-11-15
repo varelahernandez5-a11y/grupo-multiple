@@ -8,7 +8,7 @@ import crypto from "node:crypto";
 // Auth model: the expected verify token is read from the WHATSAPP_VERIFY_TOKEN
 // env var when set. Until the env var is configured in the Netlify dashboard,
 // a SHA-256 hash fallback is used so the raw token never lives in this repo.
-const VERIFY_TOKEN_SHA256 = "34e955ed78d7d8964ec21d9692d5e3e709ee110842beab1cd164a94c52c97c08";
+const VERIFY_TOKEN_SHA256 = "a8983c1e1a65b7d3be88cd57e3205b1216b869fc3f270c9ff65b4f89dcc9a087";
 
 function sha256Hex(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
