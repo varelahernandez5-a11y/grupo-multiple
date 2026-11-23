@@ -9,6 +9,10 @@ import crypto from "node:crypto";
 // env var when set. Until the env var is configured in the Netlify dashboard,
 // a SHA-256 hash fallback is used so the raw token never lives in this repo.
 const VERIFY_TOKEN_SHA256 = "a8983c1e1a65b7d3be88cd57e3205b1216b869fc3f270c9ff65b4f89dcc9a087";
+// Second accepted token (added 2026-11-23 for the "Libros de Valor API" app,
+// whose dashboard needed a verify token we control; the original token stays
+// valid for the existing herrería app).
+const VERIFY_TOKEN_SHA256_2 = "4f4f72a65db96e786603479c7ebb894da2f6d451e20081d1cb88b711f3885cf2";
 
 function sha256Hex(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
@@ -24,8 +28,9 @@ function safeEqual(a, b) {
 function verifyTokenOk(candidate) {
   if (!candidate) return false;
   const expected = process.env.WHATSAPP_VERIFY_TOKEN;
-  if (expected) return safeEqual(candidate, expected);
-  return safeEqual(sha256Hex(candidate), VERIFY_TOKEN_SHA256);
+  if (expected && safeEqual(candidate, expected)) return true;
+  const hash = sha256Hex(candidate);
+  return safeEqual(hash, VERIFY_TOKEN_SHA256) || safeEqual(hash, VERIFY_TOKEN_SHA256_2);
 }
 
 export default async (req) => {
