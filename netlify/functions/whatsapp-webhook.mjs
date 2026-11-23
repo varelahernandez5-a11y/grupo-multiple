@@ -13,6 +13,10 @@ const VERIFY_TOKEN_SHA256 = "a8983c1e1a65b7d3be88cd57e3205b1216b869fc3f270c9ff65
 // whose dashboard needed a verify token we control; the original token stays
 // valid for the existing herrería app).
 const VERIFY_TOKEN_SHA256_2 = "4f4f72a65db96e786603479c7ebb894da2f6d451e20081d1cb88b711f3885cf2";
+// Third accepted token (added 2026-11-23 for the dedicated Soluciones Express
+// app in the Fundación Manos de Valor business; raw value lives only in the
+// custom.whatsapp-se-api connector doc).
+const VERIFY_TOKEN_SHA256_3 = "3fd01351a30ba0678a457fa71ab644ff27b7be9be05e7babd436c724f5ae6aff";
 
 function sha256Hex(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
@@ -30,7 +34,7 @@ function verifyTokenOk(candidate) {
   const expected = process.env.WHATSAPP_VERIFY_TOKEN;
   if (expected && safeEqual(candidate, expected)) return true;
   const hash = sha256Hex(candidate);
-  return safeEqual(hash, VERIFY_TOKEN_SHA256) || safeEqual(hash, VERIFY_TOKEN_SHA256_2);
+  return safeEqual(hash, VERIFY_TOKEN_SHA256) || safeEqual(hash, VERIFY_TOKEN_SHA256_2) || safeEqual(hash, VERIFY_TOKEN_SHA256_3);
 }
 
 export default async (req) => {
