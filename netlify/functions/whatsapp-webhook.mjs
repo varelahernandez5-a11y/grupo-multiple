@@ -74,20 +74,13 @@ export default async (req) => {
             message,
           });
         }
-        for (const statusEvent of value.statuses ?? []) {
-          records.push({
-            kind: "status",
-            received_at: receivedAt,
-            waba_id: entry.id ?? null,
-            phone_number_id: metadata.phone_number_id ?? null,
-            status_event: statusEvent,
-          });
-        }
+        // Statuses are intentionally NOT stored (2026-11-23): with every
+        // webhook field subscribed on the Libros de Valor app, status and
+        // other non-message events flooded the inbox (2,700+ in one morning)
+        // and buried real client messages. All consumers only read messages.
       }
     }
-    const toStore = records.length
-      ? records
-      : [{ kind: "raw", received_at: receivedAt, payload }];
+    const toStore = records;
 
     try {
       const store = getStore("whatsapp-inbox");
