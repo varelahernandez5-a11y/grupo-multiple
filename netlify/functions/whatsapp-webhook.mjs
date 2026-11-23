@@ -16,7 +16,7 @@ const VERIFY_TOKEN_SHA256_2 = "4f4f72a65db96e786603479c7ebb894da2f6d451e20081d1c
 // Third accepted token (added 2026-11-23 for the dedicated Soluciones Express
 // app in the Fundación Manos de Valor business; raw value lives only in the
 // custom.whatsapp-se-api connector doc).
-const VERIFY_TOKEN_SHA256_3 = "3fd01351a30ba0678a457fa71ab644ff27b7be9be05e7babd436c724f5ae6aff";
+const VERIFY_TOKEN_SHA256_3 = "f27a6a882f48308c39538a112c2118a86dd5a6fc7c5492a77b8682e6d04b972b";
 
 function sha256Hex(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
