@@ -17,6 +17,10 @@ const VERIFY_TOKEN_SHA256_2 = "4f4f72a65db96e786603479c7ebb894da2f6d451e20081d1c
 // app in the Fundación Manos de Valor business; raw value lives only in the
 // custom.whatsapp-se-api connector doc).
 const VERIFY_TOKEN_SHA256_3 = "f27a6a882f48308c39538a112c2118a86dd5a6fc7c5492a77b8682e6d04b972b";
+// Fourth accepted token (added 2026-11-23 for the Messenger webhook of the
+// "Libros de Valor API" app; raw value lives only in the Libros de Valor
+// operations files, never in this repo).
+const VERIFY_TOKEN_SHA256_4 = "4059e5c9d18cc635a0a9923d332022ca13473b6190ef1a82586da126d7672363";
 
 function sha256Hex(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
@@ -34,7 +38,7 @@ function verifyTokenOk(candidate) {
   const expected = process.env.WHATSAPP_VERIFY_TOKEN;
   if (expected && safeEqual(candidate, expected)) return true;
   const hash = sha256Hex(candidate);
-  return safeEqual(hash, VERIFY_TOKEN_SHA256) || safeEqual(hash, VERIFY_TOKEN_SHA256_2) || safeEqual(hash, VERIFY_TOKEN_SHA256_3);
+  return safeEqual(hash, VERIFY_TOKEN_SHA256) || safeEqual(hash, VERIFY_TOKEN_SHA256_2) || safeEqual(hash, VERIFY_TOKEN_SHA256_3) || safeEqual(hash, VERIFY_TOKEN_SHA256_4);
 }
 
 export default async (req) => {
@@ -83,6 +87,25 @@ export default async (req) => {
         // other non-message events flooded the inbox (2,700+ in one morning)
         // and buried real client messages. All consumers only read messages.
       }
+      // Messenger (Page) events arrive as entry.messaging[], not as
+      // entry.changes[] (added 2026-11-23 for the Libros de Valor page).
+      // Only real user interactions are stored: messages and postbacks
+      // (button taps / quick replies ride inside message.quick_reply).
+      // Delivery/read echoes are skipped so the inbox stays readable.
+      for (const event of entry.messaging ?? []) {
+        if (!event.message && !event.postback) continue;
+        if (event.message?.is_echo) continue;
+        records.push({
+          kind: "messenger",
+          received_at: receivedAt,
+          page_id: entry.id ?? null,
+          sender_id: event.sender?.id ?? null,
+          recipient_id: event.recipient?.id ?? null,
+          timestamp: event.timestamp ?? null,
+          message: event.message ?? null,
+          postback: event.postback ?? null,
+        });
+      }
     }
     const toStore = records;
 
@@ -90,7 +113,7 @@ export default async (req) => {
       const store = getStore("whatsapp-inbox");
       for (const record of toStore) {
         const rawId =
-          record.message?.id ?? record.status_event?.id ?? crypto.randomUUID();
+          record.message?.id ?? record.message?.mid ?? record.status_event?.id ?? crypto.randomUUID();
         const idPart = String(rawId).replace(/[^a-zA-Z0-9-_]/g, "_");
         const key = `${Date.now()}-${idPart}`;
         await store.setJSON(key, record);
